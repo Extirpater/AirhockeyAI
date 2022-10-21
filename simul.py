@@ -214,7 +214,7 @@ class Mallet(object):
         self.y = self.malletStart_y
 
 upperMallet=Mallet("AI",250,100,50,330)
-lowerMallet=Mallet("AI",250,600,370,650)
+lowerMallet=Mallet("MP",250,600,370,650)
 
 def malletAI(upperMallet):
     if puck1.x < upperMallet.x:
@@ -288,24 +288,38 @@ while pause==False:
                                 pause=False
 
 
-    #pos=pygame.mouse.get_pos()
-    #lowerMallet.x=pos[0]
-    #lowerMallet.y=pos[1]
-    #lowerMallet.update_Mallet()
+    pos=pygame.mouse.get_pos()
+    lowerMallet.x=pos[0]
+    lowerMallet.y=pos[1]
+    lowerMallet.update_Mallet()
 
-    #lowerMallet.dx=lowerMallet.x-lowerMallet.last_x
-    #lowerMallet.dy=lowerMallet.y-lowerMallet.last_y
+    lowerMallet.dx=lowerMallet.x-lowerMallet.last_x
+    lowerMallet.dy=lowerMallet.y-lowerMallet.last_y
     while ticksToAI==0:
         malletAI(upperMallet)
         malletAI(lowerMallet)
 
         ticksToAI=10
-
-    if (abs(upperMallet.x-puck1.x)<=35 and abs(upperMallet.y-puck1.y)<=35):
+    #Collision Code
+    if(((upperMallet.x-puck1.x)**2+(upperMallet.y-puck1.y)**2)**0.5<35):
+        dist_off = 35-(((upperMallet.x-puck1.x)**2+(upperMallet.y-puck1.y)**2)**0.5)
+        vec = (upperMallet.x-puck1.x, upperMallet.y-puck1.y)
+        mag_vec = ((vec[0]**2)+(vec[1]**2))**0.5
+        scaled_vec = ((dist_off/mag_vec)*vec[0], (dist_off/mag_vec)*vec[1])
+        puck1.x -= scaled_vec[0]
+        puck1.y -= scaled_vec[1]
+    if(((lowerMallet.x-puck1.x)**2+(lowerMallet.y-puck1.y)**2)**0.5<35):
+        dist_off = 35-(((lowerMallet.x-puck1.x)**2+(lowerMallet.y-puck1.y)**2)**0.5)
+        vec = (lowerMallet.x-puck1.x, lowerMallet.y-puck1.y)
+        mag_vec = ((vec[0]**2)+(vec[1]**2))**0.5
+        scaled_vec = ((dist_off/mag_vec)*vec[0], (dist_off/mag_vec)*vec[1])
+        puck1.x -= scaled_vec[0]
+        puck1.y -= scaled_vec[1]
+    if (((upperMallet.x-puck1.x)**2+(upperMallet.y-puck1.y)**2)**0.5==35):
         puck1.dx=-1*puck1.dx+upperMallet.dx
         puck1.dy=-1*puck1.dy+upperMallet.dy
 
-    if (abs(lowerMallet.x-puck1.x)<=35 and abs(lowerMallet.y-puck1.y)<=35):
+    if (((lowerMallet.x-puck1.x)**2+(lowerMallet.y-puck1.y)**2)**0.5==35):
         puck1.dx=-1*puck1.dx+lowerMallet.dx
         puck1.dy=-1*puck1.dy+lowerMallet.dy
 
