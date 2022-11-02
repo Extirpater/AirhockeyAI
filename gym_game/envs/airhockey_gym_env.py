@@ -32,7 +32,7 @@ class AirHockeyEnv(gym.Env):
                 "paddle1":spaces.Box(low=np.array([0,0, -max_paddle_speed, -max_paddle_speed]), high=np.array([500,350, max_paddle_speed,max_paddle_speed])) # paddle 1 is restricted to the left side of the table
             }
         )
-        self.action_space = spaces.Box(low=np.array([-max_paddle_speed]), high=np.array([max_paddle_speed]))
+        self.action_space = spaces.Box(low=np.array([-max_paddle_speed, -max_paddle_speed]), high=np.array([max_paddle_speed, max_paddle_speed])) # 2D vector: dx,dy
 
         assert render_mode is None or render_mode in self.metadata["render.modes"]
         self.render_mode = render_mode
