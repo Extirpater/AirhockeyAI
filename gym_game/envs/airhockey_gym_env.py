@@ -42,10 +42,14 @@ class AirHockeyEnv(gym.Env):
             "paddle1":np.concatenate([self._paddle1_location, self._paddle1_velocity])
         }
     def step(self, action):
+        self._paddle1_velocity=action
         self._puck_location += self._puck_velocity
         self._paddle1_location += self._paddle1_velocity
+        self._paddle1_location[0] = max(0, min(self._paddle1_location[0], 500))
+        self._paddle1_location[1] = max(0, min(self._paddle1_location[1], 350))
         last_loc = self._paddle2_location
         self._paddle2_location = np.asarray(pygame.mouse.get_pos())
+
         if self._paddle2_location[1]<350:
             self._paddle2_location[1]=350
         self._paddle2_velocity = np.array([self._paddle2_location[0]-last_loc[0], self._paddle2_location[1]-last_loc[1]])

@@ -11,7 +11,8 @@ for episode in range(1, episodes+1):
     step = 0
     while step<max_steps and not done:
         env.render()
-        action = env.action_space.sample()
+        if step%10==0:
+            action = env.action_space.sample()
         n_state, reward, done, info  = env.step(action)
         score+=reward
         step+=1
