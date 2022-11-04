@@ -7,6 +7,11 @@ from pygame.locals import *
 window_size = [500,700]
 max_paddle_speed = 10
 paddle_radius = 20
+puck_radius = 20
+mass_puck = 1 # measured in grams i guess
+mass_paddle = 2
+
+
 
 class Goal(object):
     def __init__(self,x,y,w=100,h=5):
@@ -36,6 +41,79 @@ class AirHockeyEnv(gym.Env):
 
         assert render_mode is None or render_mode in self.metadata["render.modes"]
         self.render_mode = render_mode
+    # def collide(self,paddle_num): # 1 for paddle 1 and 2 for paddle 2
+    #     paddle_loc = list([self._paddle1_location, self._paddle2_location])[paddle_num-1]
+    #     paddle_vel = list([self._paddle1_velocity, self._paddle2_velocity])[paddle_num-1]
+    #     if(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5<2*paddle_radius):
+    #         dist_off = 2*paddle_radius-(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5)
+    #         vec = (paddle_loc[0]-self._puck_location[0], paddle_loc[1]-self._puck_location[1])
+    #         mag_vec = ((vec[0]**2)+(vec[1]**2))**0.5
+    #         if mag_vec!=0:
+    #             scaled_vec = ((dist_off/mag_vec)*vec[0], (dist_off/mag_vec)*vec[1])
+    #         else:
+    #             scaled_vec=(0,0)
+    #         self._puck_location[0] -= scaled_vec[0]
+    #         self._puck_location[1] -= scaled_vec[1]
+    #     if (((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5==2*paddle_radius):
+    #         self._puck_velocity[0]=-1*self._puck_velocity[0]+paddle_vel[0]
+    #         self._puck_velocity[1]=-1*self._puck_velocity[1]+paddle_vel[1]
+    def collide_eric(self, paddle_num):
+        paddle_loc = list([self._paddle1_location, self._paddle2_location])[paddle_num-1]
+        paddle_vel = list([self._paddle1_velocity, self._paddle2_velocity])[paddle_num-1]
+        # paddle 1 puck 2
+        if(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5<puck_radius+paddle_radius):
+            dist_off = 2*paddle_radius-(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5)
+            vec = (paddle_loc[0]-self._puck_location[0], paddle_loc[1]-self._puck_location[1])
+            mag_vec = ((vec[0]**2)+(vec[1]**2))**0.5
+            if mag_vec!=0:
+                scaled_vec = ((dist_off/mag_vec)*vec[0], (dist_off/mag_vec)*vec[1])
+            else:
+                scaled_vec=(0,0)
+            d = ((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5
+            nx = (self._puck_location[0]-paddle_loc[0])/d
+            ny = (self._puck_location[1]-paddle_loc[1])/d
+            p = 2*(paddle_vel[0]*nx+paddle_vel[1]*ny-self._puck_velocity[0]*nx-self._puck_velocity[1]*ny)/(mass_puck+mass_paddle)
+            self._puck_velocity[0] += p*mass_puck*nx
+            self._puck_velocity[1] += p*mass_puck*ny
+            # update location after updating new direction so it doesn't end up just sticking to the paddle
+            self._puck_location[0] -= scaled_vec[0]
+            self._puck_location[1] -= scaled_vec[1]
+            self._puck_location += self._puck_velocity
+        if(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5<=puck_radius+paddle_radius):
+            d = ((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5
+            nx = (self._puck_location[0]-paddle_loc[0])/d
+            ny = (self._puck_location[1]-paddle_loc[1])/d
+            p = 2*(paddle_vel[0]*nx+paddle_vel[1]*ny -self._puck_velocity[0]*nx-self._puck_velocity[1]*ny)/(mass_puck+mass_paddle)
+            self._puck_velocity[0] += p*mass_puck*nx
+            self._puck_velocity[1] += p*mass_puck*ny
+            print(p)
+
+    def collide_physical(self,paddle_num): # collision code assuming fully elastic collisions and no external forces
+        paddle_loc = list([self._paddle1_location, self._paddle2_location])[paddle_num-1]
+        paddle_vel = list([self._paddle1_velocity, self._paddle2_velocity])[paddle_num-1]
+        # m1v1x0 + m2v2x0 = m1v1xf + m2v2xf
+        if(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5<puck_radius+paddle_radius):
+            dist_off = 2*paddle_radius-(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5)
+            vec = (paddle_loc[0]-self._puck_location[0], paddle_loc[1]-self._puck_location[1])
+            mag_vec = ((vec[0]**2)+(vec[1]**2))**0.5
+            if mag_vec!=0:
+                scaled_vec = ((dist_off/mag_vec)*vec[0], (dist_off/mag_vec)*vec[1])
+            else:
+                scaled_vec=(0,0)
+            self._puck_location[0] -= scaled_vec[0]
+            self._puck_location[1] -= scaled_vec[1]
+        if(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5==puck_radius+paddle_radius):
+            M_x0 = paddle_vel[0]*mass_paddle+self._puck_velocity[0]*mass_puck #initial momentum in x
+            M_y0 = paddle_vel[1]*mass_paddle+self._puck_velocity[1]*mass_puck #initial momentum in y
+            self._puck_velocity[0] = M_x0/mass_puck # assuming paddle_velocity is zero
+            self._puck_velocity[1] = M_y0/mass_puck
+            #friction
+            if self._puck_velocity[0]>0: self._puck_velocity[0]-=1 
+            else: self._puck_velocity[0]+=1
+            if self._puck_velocity[1]>0: self._puck_velocity[1]-=1 
+            else: self._puck_velocity[1]+=1
+
+
     def _get_obs(self):
         return {
             "puck":np.concatenate([self._puck_location, self._puck_velocity]),
@@ -56,35 +134,15 @@ class AirHockeyEnv(gym.Env):
         observation = self._get_obs()
 
         # Collision Code
+        # if paddle 1 hits puck
+        # self.collide(1)
+        # self.collide(2)
 
-        if(((self._paddle1_location[0]-self._puck_location[0])**2+(self._paddle1_location[1]-self._puck_location[1])**2)**0.5<2*paddle_radius):
-            dist_off = 2*paddle_radius-(((self._paddle1_location[0]-self._puck_location[0])**2+(self._paddle1_location[1]-self._puck_location[1])**2)**0.5)
-            vec = (self._paddle1_location[0]-self._puck_location[0], self._paddle1_location[1]-self._puck_location[1])
-            mag_vec = ((vec[0]**2)+(vec[1]**2))**0.5
-            if mag_vec!=0:
-                scaled_vec = ((dist_off/mag_vec)*vec[0], (dist_off/mag_vec)*vec[1])
-            else:
-                scaled_vec=(0,0)
-            self._puck_location[0] -= scaled_vec[0]
-            self._puck_location[1] -= scaled_vec[1]
-        if(((self._paddle2_location[0]-self._puck_location[0])**2+(self._paddle2_location[1]-self._puck_location[1])**2)**0.5<2*paddle_radius):
-            dist_off = 2*paddle_radius-(((self._paddle2_location[0]-self._puck_location[0])**2+(self._paddle2_location[1]-self._puck_location[1])**2)**0.5)
-            vec = (self._paddle2_location[0]-self._puck_location[0], self._paddle2_location[1]-self._puck_location[1])
-            mag_vec = ((vec[0]**2)+(vec[1]**2))**0.5
-            if mag_vec!=0:
-                scaled_vec = ((dist_off/mag_vec)*vec[0], (dist_off/mag_vec)*vec[1])
-            else:
-                scaled_vec=(0,0)
-            self._puck_location[0] -= scaled_vec[0]
-            self._puck_location[1] -= scaled_vec[1]
-        if (((self._paddle1_location[0]-self._puck_location[0])**2+(self._paddle1_location[1]-self._puck_location[1])**2)**0.5==2*paddle_radius):
-            self._puck_velocity[0]=-1*self._puck_velocity[0]+self._paddle1_velocity[0]
-            self._puck_velocity[1]=-1*self._puck_velocity[1]+self._paddle1_velocity[1]
-
-        if (((self._paddle2_location[0]-self._puck_location[0])**2+(self._paddle2_location[1]-self._puck_location[1])**2)**0.5==2*paddle_radius):
-            self._puck_velocity[0]=-1*self._puck_velocity[0]+self._paddle2_velocity[0]
-            self._puck_velocity[1]=-1*self._puck_velocity[1]+self._paddle2_velocity[1]
+        # self.collide_physical(1)
+        # self.collide_physical(2)
         
+        self.collide_eric(1)
+        self.collide_eric(2)
 
         # update puck based on walls
         if self._puck_location[0]<=0+10:
@@ -141,7 +199,7 @@ class AirHockeyEnv(gym.Env):
         canvas.fill((0,0,0))
         pygame.draw.rect(canvas, (255,255,255), (leftGoal.x,leftGoal.y,leftGoal.w,leftGoal.h))
         pygame.draw.rect(canvas, (255,255,255), (rightGoal.x,rightGoal.y,rightGoal.w,rightGoal.h))
-        pygame.draw.circle(canvas, (255,255,255), (int(self._puck_location[0]),int(self._puck_location[1])), paddle_radius)
+        pygame.draw.circle(canvas, (255,255,255), (int(self._puck_location[0]),int(self._puck_location[1])), puck_radius)
         pygame.draw.circle(canvas, (255,0,0), (int(self._paddle1_location[0]),int(self._paddle1_location[1])), paddle_radius)
         pygame.draw.circle(canvas, (0,0,255), (int(self._paddle2_location[0]),int(self._paddle2_location[1])), paddle_radius)
         self.window.blit(canvas, (0,0))

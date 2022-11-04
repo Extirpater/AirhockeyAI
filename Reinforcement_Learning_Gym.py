@@ -2,8 +2,8 @@ import gym
 import gym_game
 
 env = gym.make('AirHockey-v0')
-max_steps = 1000
-episodes = 5
+max_steps = 3000
+episodes = 10
 for episode in range(1, episodes+1):
     state = env.reset()
     done = False
