@@ -125,15 +125,44 @@ class AirHockeyEnv(gym.Env):
         self._paddle1_location += self._paddle1_velocity
         self._paddle1_location[0] = max(0, min(self._paddle1_location[0], 500))
         self._paddle1_location[1] = max(0, min(self._paddle1_location[1], 350))
-        last_loc = self._paddle2_location
-        self._paddle2_location = np.asarray(pygame.mouse.get_pos())
+        self._paddle2_location+=self._paddle2_velocity
+        self._paddle1_location[0] = max(0, min(self._paddle1_location[0], 500))
+        self._paddle1_location[1] = min(350, min(self._paddle1_location[1], 700))
 
-        if self._paddle2_location[1]<350:
-            self._paddle2_location[1]=350
-        self._paddle2_velocity = np.array([self._paddle2_location[0]-last_loc[0], self._paddle2_location[1]-last_loc[1]])
-        observation = self._get_obs()
+        # last_loc = self._paddle2_location
+        # self._paddle2_location = np.asarray(pygame.mouse.get_pos())
 
+        # if self._paddle2_location[1]<350:
+        #     self._paddle2_location[1]=350
+        # self._paddle2_velocity = np.array([self._paddle2_location[0]-last_loc[0], self._paddle2_location[1]-last_loc[1]])
+        lLim = 50
+        uLim = 370
+        rLim = 450
         # Collision Code
+        if self._puck_location[0] < self._paddle2_location[0]:
+                if self._puck_location[0] < lLim:
+                    self._paddle2_velocity[0]=1
+                else:
+                    self._paddle2_velocity[0]=-2
+        if self._puck_location[0] > self._paddle2_location[0]:
+            if  self._puck_location[0] > rLim:
+                self._paddle2_velocity[0]=-1
+            else:
+                self._paddle2_velocity[0]=2
+        if self._puck_location[1] < self._paddle2_location[1]:
+            if self._puck_location[1] < uLim:
+                self._paddle2_velocity[1]=1
+            else:
+                self._paddle2_velocity[1]=-6
+        if self._puck_location[1] > self._paddle2_location[1]:
+            if self._puck_location[1]<=360:
+                self._paddle2_velocity[1]=6
+            else:
+                if self._paddle2_location[1]>200:
+                    self._paddle2_velocity[1]=-2
+                else:
+                    self._paddle2_velocity[1]=0
+        observation = self._get_obs()
         # if paddle 1 hits puck
         # self.collide(1)
         # self.collide(2)
