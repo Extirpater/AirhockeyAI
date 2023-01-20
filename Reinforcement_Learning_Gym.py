@@ -6,12 +6,12 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 
 env = gym.make('AirHockey-v0')
-
+env._max_episode_steps = 10000
 def train_model(env):
     env = DummyVecEnv([lambda: env])
     model = PPO('MultiInputPolicy', env, verbose=1)
-    model.learn(total_timesteps=100000)
-    model.save("/home/ericwfeng/AirhockeyAI/Training/Saved Models/PPOMIP_100000")
+    model.learn(total_timesteps=10000)
+    model.save("/home/ericwfeng/AirhockeyAI/Training/Saved Models/PPOMIP_10000_1_20_23")
     return model
 def run_model():
     max_steps = 3000
@@ -31,8 +31,9 @@ def run_model():
         print('Episode:{} Score:{}'.format(episode, score))
     env.close()
 
-# run_model()
+# model = train_model(env)
+# print("done training")
 
-model = train_model(env)
-print("done training")
-evaluate_policy(model, env, n_eval_episodes = 10, render=False)
+# print("result:",evaluate_policy(model, env, n_eval_episodes = 10, render=True))
+model = PPO.load("/home/ericwfeng/AirhockeyAI/Training/Saved Models/PPOMIP_10000_1_20_23", env=env)
+run_model()
