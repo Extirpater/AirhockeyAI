@@ -87,7 +87,7 @@ class AirHockeyEnv(gym.Env):
             p = 2*(paddle_vel[0]*nx+paddle_vel[1]*ny -self._puck_velocity[0]*nx-self._puck_velocity[1]*ny)/(mass_puck+mass_paddle)
             self._puck_velocity[0] += p*mass_puck*nx
             self._puck_velocity[1] += p*mass_puck*ny
-            print(p)
+            # print(p)
 
     def collide_physical(self,paddle_num): # collision code assuming fully elastic collisions and no external forces
         paddle_loc = list([self._paddle1_location, self._paddle2_location])[paddle_num-1]
@@ -197,17 +197,17 @@ class AirHockeyEnv(gym.Env):
         self.time_step+=1
         done=False
         if (abs(leftGoal.centre_y-self._puck_location[1])<=10 and abs(leftGoal.centre_x-self._puck_location[0])<=50):
-            print("Goal Scored upper", self._puck_location)
+            # print("Goal Scored upper", self._puck_location)
             done=True
-            reward = -1
+            reward = 4
         elif (abs(rightGoal.centre_y-self._puck_location[1])<=10 and abs(rightGoal.centre_x-self._puck_location[0])<=50):
         # elif (abs(rightGoal.centre_y-self._paddle2_location[1])<=10 and abs(rightGoal.centre_x-self._paddle2_location[0])<=50):
-            print("Goal Scored lower", self._puck_location)
+            # print("Goal Scored lower", self._puck_location)
             done=True
-            reward = 1
+            reward = -4
         else:  
             reward = 0
-        if self.time_step>max_time_steps:
+        if self.time_step>max_time_steps and not done:
             done=True
             reward = -2
         info = {}

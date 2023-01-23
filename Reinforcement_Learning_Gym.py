@@ -10,11 +10,11 @@ env._max_episode_steps = 10000
 def train_model(env):
     env = DummyVecEnv([lambda: env])
     model = PPO('MultiInputPolicy', env, verbose=1)
-    model.learn(total_timesteps=10000)
-    model.save("/home/ericwfeng/AirhockeyAI/Training/Saved Models/PPOMIP_10000_1_20_23")
+    model.learn(total_timesteps=100000)
+    model.save("/home/ericwfeng/AirhockeyAI/Training/Saved Models/PPOMIP_100000_1_23_23")
     return model
 def run_model():
-    max_steps = 3000
+    max_steps = 10000
     episodes = 10
     for episode in range(1, episodes+1):
         state = env.reset()
@@ -35,5 +35,5 @@ def run_model():
 # print("done training")
 
 # print("result:",evaluate_policy(model, env, n_eval_episodes = 10, render=True))
-model = PPO.load("/home/ericwfeng/AirhockeyAI/Training/Saved Models/PPOMIP_10000_1_20_23", env=env)
+model = PPO.load("/home/ericwfeng/AirhockeyAI/Training/Saved Models/PPOMIP_100000_1_23_23", env=env)
 run_model()
