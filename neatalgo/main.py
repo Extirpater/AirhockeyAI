@@ -109,7 +109,7 @@ class PongGame:
         self.genome1.fitness += game_info.left_hits + duration
         self.genome2.fitness += game_info.right_hits + duration
 
-
+#a
 def eval_genomes(genomes, config):
     """
     Run each genome against eachother one time to determine the fitness.
