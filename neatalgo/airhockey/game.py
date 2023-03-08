@@ -57,6 +57,12 @@ class Game:
             f"{self.left_hits + self.right_hits}", 1, self.RED)
         self.window.blit(hits_text, (self.window_width //
                                      2 - hits_text.get_width()//2, 10))
+    def _draw_goals(self):
+        goal_height = self.window_height//10
+        goal_width = 4
+        # draw two goals on the left and right side of the screen centered on the midline
+        pygame.draw.rect(self.window, self.WHITE, (0, self.window_height//2 - goal_height//2, goal_width, goal_height))
+        pygame.draw.rect(self.window, self.WHITE, (self.window_width - goal_width, self.window_height//2 - goal_height//2, goal_width, goal_height))
 
     def _draw_divider(self):
         for i in range(10, self.window_height, self.window_height//20):
@@ -69,66 +75,83 @@ class Game:
         ball = self.ball
         left_paddle = self.left_paddle
         right_paddle = self.right_paddle
-
+        # handle collision of ball with horizontal walls
         if ball.y + ball.RADIUS >= self.window_height:
-            ball.y_vel *= -1
+            # print("hit bottom wall")
+            ball.y_vel = - abs(ball.y_vel)
         elif ball.y - ball.RADIUS <= 0:
-            ball.y_vel *= -1
-
-        if ball.x_vel < 0:
-            if ball.y >= left_paddle.y and ball.y <= left_paddle.y + Paddle.RADIUS:
-                if ball.x - ball.RADIUS <= left_paddle.x + Paddle.RADIUS:
-                    ball.x_vel *= -1
-
-                    middle_y = left_paddle.y + Paddle.RADIUS / 2
-                    difference_in_y = middle_y - ball.y
-                    reduction_factor = (Paddle.RADIUS / 2) / ball.MAX_VEL
-                    y_vel = difference_in_y / reduction_factor
-                    ball.y_vel = -1 * y_vel
-                    self.left_hits += 1
-
-        else:
-            if ball.y >= right_paddle.y and ball.y <= right_paddle.y + Paddle.RADIUS:
-                if ball.x + ball.RADIUS >= right_paddle.x:
-                    ball.x_vel *= -1
-
-                    middle_y = right_paddle.y + Paddle.RADIUS / 2
-                    difference_in_y = middle_y - ball.y
-                    reduction_factor = (Paddle.RADIUS / 2) / ball.MAX_VEL
-                    y_vel = difference_in_y / reduction_factor
-                    ball.y_vel = -1 * y_vel
-                    self.right_hits += 1
-        # paddle_loc = list([self._paddle1_location, self._paddle2_location])[paddle_num-1]
-        # paddle_vel = list([self._paddle1_velocity, self._paddle2_velocity])[paddle_num-1]
-        # paddle 1 puck 2
-        # if(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5<puck_radius+paddle_radius):
-        #     dist_off = 2*paddle_radius-(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5)
-        #     vec = (paddle_loc[0]-self._puck_location[0], paddle_loc[1]-self._puck_location[1])
-        #     mag_vec = ((vec[0]**2)+(vec[1]**2))**0.5
-        #     if mag_vec!=0:
-        #         scaled_vec = ((dist_off/mag_vec)*vec[0], (dist_off/mag_vec)*vec[1])
-        #     else:
-        #         scaled_vec=(0,0)
-        #     d = ((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5
-        #     nx = (self._puck_location[0]-paddle_loc[0])/d
-        #     ny = (self._puck_location[1]-paddle_loc[1])/d
-        #     p = 2*(paddle_vel[0]*nx+paddle_vel[1]*ny-self._puck_velocity[0]*nx-self._puck_velocity[1]*ny)/(mass_puck+mass_paddle)
-        #     self._puck_velocity[0] += p*mass_puck*nx
-        #     self._puck_velocity[1] += p*mass_puck*ny
-        #     # update location after updating new direction so it doesn't end up just sticking to the paddle
-        #     self._puck_location[0] -= scaled_vec[0]
-        #     self._puck_location[1] -= scaled_vec[1]
-        #     self._puck_location += self._puck_velocity
-        # if(((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5<=puck_radius+paddle_radius):
-        #     d = ((paddle_loc[0]-self._puck_location[0])**2+(paddle_loc[1]-self._puck_location[1])**2)**0.5
-        #     nx = (self._puck_location[0]-paddle_loc[0])/d
-        #     ny = (self._puck_location[1]-paddle_loc[1])/d
-        #     p = 2*(paddle_vel[0]*nx+paddle_vel[1]*ny -self._puck_velocity[0]*nx-self._puck_velocity[1]*ny)/(mass_puck+mass_paddle)
-        #     self._puck_velocity[0] += p*mass_puck*nx
-        #     self._puck_velocity[1] += p*mass_puck*ny
+            # print("hit top wall")
+            ball.y_vel = abs(ball.y_vel)
+        
+        # handle collision of ball with vertical walls
+        if ball.x + ball.RADIUS >= self.window_width:
+            # print("hit right wall")
+            ball.x_vel *= -1
+        elif ball.x - ball.RADIUS <= 0:
+            # print("hit left wall")
+            # self.right_score += 1
+            ball.x_vel *= -1
+        
+        # if the ball hits the left paddle
+        if ((left_paddle.x-ball.x)**2 + (left_paddle.y-ball.y)**2)**0.5<Paddle.RADIUS+Ball.RADIUS:
+            # print("hit left paddle")
+            self.left_hits +=1
+            distance = 2*Paddle.RADIUS - (((left_paddle.x-ball.x)**2 + (left_paddle.y-ball.y)**2)**0.5)
+            vec = (left_paddle.x-ball.x, left_paddle.y-ball.y)
+            vec_magnitude = (vec[0]**2 + vec[1]**2)**0.5
+            if vec_magnitude!=0:
+                scaled_vec = ((distance/vec_magnitude)*vec[0], (distance/vec_magnitude)*vec[1])
+            else:
+                scaled_vec = (0,0)
+            d =((left_paddle.x-ball.x)**2 + (left_paddle.y-ball.y)**2)**0.5
+            nx = (ball.x-left_paddle.x)/d
+            ny = (ball.y-left_paddle.y)/d
+            p = 2*(left_paddle.x_vel*nx + left_paddle.y_vel*ny-ball.x_vel*nx-ball.y_vel*ny)/(1)
+            ball.x_vel += p*nx
+            ball.y_vel += p*ny
+            ball.x -= 2*scaled_vec[0]
+            ball.y -= 2*scaled_vec[1]
+            # ball.x += ball.x_vel
+            # ball.y += ball.y_vel
+        if ((left_paddle.x-ball.x)**2 + (left_paddle.y-ball.y)**2)**0.5<=Paddle.RADIUS+Ball.RADIUS:
+            # print("hit left paddle")
+            d = ((left_paddle.x-ball.x)**2+(left_paddle.y-ball.y)**2)**0.5
+            nx = (ball.x-left_paddle.x)/d
+            ny = (ball.y-left_paddle.y)/d
+            p = 2*(left_paddle.x_vel*nx+left_paddle.y_vel*ny-ball.x_vel*nx-ball.y_vel*ny)/(1)
+            ball.x_vel += p*nx
+            ball.y_vel += p*ny
+        if ((right_paddle.x-ball.x)**2 + (right_paddle.y-ball.y)**2)**0.5<Paddle.RADIUS+Ball.RADIUS:
+            # print("hit right paddle")
+            self.right_hits +=1
+            distance = 2*Paddle.RADIUS - (((right_paddle.x-ball.x)**2 + (right_paddle.y-ball.y)**2)**0.5)
+            vec = (right_paddle.x-ball.x, right_paddle.y-ball.y)
+            vec_magnitude = (vec[0]**2 + vec[1]**2)**0.5
+            if vec_magnitude!=0:
+                scaled_vec = ((distance/vec_magnitude)*vec[0], (distance/vec_magnitude)*vec[1])
+            else:
+                scaled_vec = (0,0)
+            d =((right_paddle.x-ball.x)**2 + (right_paddle.y-ball.y)**2)**0.5
+            nx = (ball.x-right_paddle.x)/d
+            ny = (ball.y-right_paddle.y)/d
+            p = 2*(right_paddle.x_vel*nx + right_paddle.y_vel*ny-ball.x_vel*nx-ball.y_vel*ny)/(1)
+            ball.x_vel += p*nx
+            ball.y_vel += p*ny
+            ball.x -= 2*scaled_vec[0]
+            ball.y -= 2*scaled_vec[1]
+            # ball.x += ball.x_vel
+            # ball.y += ball.y_vel
+        if ((right_paddle.x-ball.x)**2 + (right_paddle.y-ball.y)**2)**0.5<=Paddle.RADIUS+Ball.RADIUS:
+            # print("hit right paddle")
+            d = ((right_paddle.x-ball.x)**2+(right_paddle.y-ball.y)**2)**0.5
+            nx = (ball.x-right_paddle.x)/d
+            ny = (ball.y-right_paddle.y)/d
+            p = 2*(right_paddle.x_vel*nx+right_paddle.y_vel*ny-ball.x_vel*nx-ball.y_vel*ny)/(1)
+            ball.x_vel += p*nx
+            ball.y_vel += p*ny    
     def draw(self, draw_score=True, draw_hits=False):
         self.window.fill(self.BLACK)
-
+        self._draw_goals()
         self._draw_divider()
 
         if draw_score:
@@ -137,8 +160,8 @@ class Game:
         if draw_hits:
             self._draw_hits()
 
-        for paddle in [self.left_paddle, self.right_paddle]:
-            paddle.draw(self.window)
+        for left, paddle in enumerate([self.left_paddle, self.right_paddle]):
+            paddle.draw(left, self.window)
 
         self.ball.draw(self.window)
 
@@ -163,17 +186,25 @@ class Game:
             else:
                 if up and self.left_paddle.y - Paddle.VEL - Paddle.RADIUS < 0: # if paddle is moving up and it will go off the screen
                     valid = False
+                    self.left_paddle.y_vel = 0
+                    self.left_paddle.x_vel = 0
                 if not up and self.left_paddle.y + Paddle.RADIUS + Paddle.VEL > self.window_height: # if paddle is moving up and it will go off the screen
                     valid = False
+                    self.left_paddle.y_vel = 0
+                    self.left_paddle.x_vel = 0
                 down = not up
             if no_lateral:
                 move_left=False
                 move_right=False
             else:
                 if move_left and self.left_paddle.x - Paddle.VEL - Paddle.RADIUS < 0: # if paddle is moving left and it will go off the screen
-                    valid=False
+                    valid = False
+                    self.left_paddle.y_vel = 0
+                    self.left_paddle.x_vel = 0
                 if not move_left and self.left_paddle.x + Paddle.RADIUS + Paddle.VEL > self.window_width/2: # if paddle is moving right and it will go off the screen
-                    valid=False
+                    valid = False
+                    self.left_paddle.y_vel = 0
+                    self.left_paddle.x_vel = 0
                 move_right = not move_left
             if valid:
                 self.left_paddle.move(up, down, move_left, move_right)
@@ -184,20 +215,31 @@ class Game:
             else:
                 if up and self.right_paddle.y - Paddle.VEL - Paddle.RADIUS < 0: # if paddle is moving up and it will go off the screen
                     valid = False
+                    self.right_paddle.y_vel = 0
+                    self.right_paddle.x_vel = 0
                     up=False
                 if not up and self.right_paddle.y + Paddle.RADIUS + Paddle.VEL > self.window_height: # if paddle is moving up and it will go off the screen
                     valid = False
+                    self.right_paddle.y_vel = 0
+                    self.right_paddle.x_vel = 0
                     up=True
                 down = not up
             if no_lateral:
                 move_left=False
                 move_right=False
             else:
+                # invert decisions for the right paddle
+                move_left = not move_left
+                move_right = not move_right
                 if move_left and self.right_paddle.x - Paddle.VEL - Paddle.RADIUS < self.window_width/2: # if paddle is moving left and it will go off the screen
                     valid = False
+                    self.right_paddle.y_vel = 0
+                    self.right_paddle.x_vel = 0
                     move_left=False
                 if not move_left and self.right_paddle.x + Paddle.RADIUS + Paddle.VEL > self.window_width: # if paddle is moving right and it will go off the screen
                     valid = False
+                    self.right_paddle.y_vel = 0
+                    self.right_paddle.x_vel = 0
                     move_left=True
                 move_right = not move_left
             if valid:
@@ -215,10 +257,12 @@ class Game:
         self.ball.move()
         self._handle_collision()
 
-        if self.ball.x < 0:
+        if self.ball.x <= Paddle.RADIUS and self.ball.y >= self.window_height/2 - 50 and self.ball.y <= self.window_height/2 + 50:
+            # print(self.ball.x, self.ball.y, self.window_height, self.window_width)
             self.ball.reset()
             self.right_score += 1
-        elif self.ball.x > self.window_width:
+        if self.ball.x >= self.window_width-Paddle.RADIUS and self.ball.y >= self.window_height/2 - 50 and self.ball.y <= self.window_height/2 + 50:
+            # print(self.ball.x, self.ball.y, self.window_height, self.window_width)
             self.ball.reset()
             self.left_score += 1
 
@@ -228,6 +272,7 @@ class Game:
         return game_info
 
     def reset(self):
+        print("resent for some reason")
         """Resets the entire game."""
         self.ball.reset()
         self.left_paddle.reset()

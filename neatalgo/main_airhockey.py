@@ -29,9 +29,7 @@ class AirhockeyGame:
                     run = False
                     break
             # net.activate creates the inputs to the MLP
-            output = net.activate((self.right_paddle.y, self.right_paddle.x, abs(
-                self.right_paddle.x - self.ball.x), self.ball.y))
-            print(output)
+            output = net.activate((self.right_paddle.x, self.right_paddle.y, self.right_paddle.x_vel, self.right_paddle.y_vel, self.ball.x, self.ball.y, self.ball.x_vel, self.ball.y_vel))
             decision = output.index(max(output))
 
             if decision == 1:  # AI moves up
@@ -74,15 +72,15 @@ class AirhockeyGame:
             game_info = self.game.loop()
 
             self.move_ai_paddles(net1, net2)
-
+            # time.sleep(0.01)
             if draw:
                 self.game.draw(draw_score=False, draw_hits=True)
-            time.sleep(0.0001)
             pygame.display.update()
 
             duration = time.time() - start_time
             if game_info.left_score == 1 or game_info.right_score == 1 or game_info.left_hits >= max_hits:
                 self.calculate_fitness(game_info, duration)
+                # print("Game over")
                 break
 
         return False
@@ -95,24 +93,30 @@ class AirhockeyGame:
         players = [(self.genome1, net1, self.left_paddle, True), (self.genome2, net2, self.right_paddle, False)]
         for (genome, net, paddle, left) in players:
             output = net.activate(
-                (paddle.y, paddle.x, abs(paddle.x - self.ball.x), self.ball.y))
-            # print(output)
+                (paddle.y, paddle.x, self.ball.x, self.ball.y))
+            # print(left, output)
             decision = output.index(max(output))
             # six outputs: don't move vert, up, down, don't move horiz, left, right
-            valid = True
+            no_lateral = False
+            no_vertical = False
+            move_up = False
+            move_left = False
             if decision == 0:  # Don't move
                 genome.fitness -= 0.01  # we want to discourage this
+                no_vertical = True
             elif decision == 1:  # Move up
-                valid = self.game.move_paddle(left_paddle=left, up=True)
-            else:  # Move down
-                valid = self.game.move_paddle(left_paddle=left, up=False)
+                move_up = True
+            elif decision ==2:  # Move down
+                move_up = False
+            
             if decision == 3:  # Don't move
                 genome.fitness -= 0.01  # we want to discourage this
-            elif decision == 4:  # Move up
-                valid = self.game.move_paddle(left_paddle=left, up=True)
-            else:  # Move down
-                valid = self.game.move_paddle(left_paddle=left, up=False)
-
+                no_lateral = True
+            elif decision == 4:  # Move right
+                move_left = False
+            elif decision ==5:  # Move left
+                move_left = True
+            valid = self.game.move_paddle(left_paddle=left, up=move_up, move_left=move_left, no_lateral=no_lateral, no_vertical = no_vertical)
             if not valid:  # If the movement makes the paddle go off the screen punish the AI
                 genome.fitness -= 1
 
