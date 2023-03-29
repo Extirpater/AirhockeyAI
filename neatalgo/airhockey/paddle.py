@@ -28,13 +28,13 @@ class Paddle:
         y_prev = self.y
         x_prev = self.x
         if up:
-            self.y -= self.VEL
+            self.y -= 2*self.VEL
         elif down:
-            self.y += self.VEL
+            self.y += 2*self.VEL
         if left:
-            self.x -= self.VEL
+            self.x -= 2*self.VEL
         elif right:
-            self.x += self.VEL
+            self.x += 2*self.VEL
         self.y_vel = self.y - y_prev
         # print(self.y_vel, self.y, y_prev)
         self.x_vel = self.x - x_prev

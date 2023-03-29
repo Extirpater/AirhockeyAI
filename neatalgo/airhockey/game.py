@@ -1,6 +1,7 @@
 from .paddle import Paddle
 from .ball import Ball
 import pygame
+import time
 import random
 pygame.init()
 
@@ -41,6 +42,8 @@ class Game:
         self.left_hits = 0
         self.right_hits = 0
         self.window = window
+        self.start_time = time.time()
+        self.game_time = 5
 
     def _draw_score(self):
         left_score_text = self.SCORE_FONT.render(
@@ -75,6 +78,8 @@ class Game:
         ball = self.ball
         left_paddle = self.left_paddle
         right_paddle = self.right_paddle
+        ball.y_vel = ball.y_vel*0.999
+        ball.x_vel = ball.x_vel*0.999
         # handle collision of ball with horizontal walls
         if ball.y + ball.RADIUS >= self.window_height:
             # print("hit bottom wall")
@@ -265,6 +270,11 @@ class Game:
             # print(self.ball.x, self.ball.y, self.window_height, self.window_width)
             self.ball.reset()
             self.left_score += 1
+        # if time is up, reset the game
+        if time.time() - self.start_time > self.game_time:
+            self.ball.reset()
+            self.left_score +=1
+            self.right_score +=1
 
         game_info = GameInformation(
             self.left_hits, self.right_hits, self.left_score, self.right_score)

@@ -40,12 +40,17 @@ class AirhockeyGame:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_w]:
                 # self.game.move_paddle(left=True, up=True)
-                self.game.move_paddle(left=True, up=True, move_left=True, move_right=True)
+                self.game.move_paddle(left_paddle=True, up=True, no_lateral=True, no_vertical=False)
             elif keys[pygame.K_s]:
                 # self.game.move_paddle(left=True, up=False)
-                self.game.move_paddle(left=True, up=True, move_left=True, move_right=True)
+                self.game.move_paddle(left_paddle=True, up=False, no_lateral=True, no_vertical=False)
+            elif keys[pygame.K_a]:
+                self.game.move_paddle(left_paddle=True, move_left=True, no_lateral=False, no_vertical=True)
+            elif keys[pygame.K_d]:
+                self.game.move_paddle(left_paddle=True, move_left=False, no_lateral=False, no_vertical=True)
 
             self.game.draw(draw_score=True)
+
             # delay(1000)
             pygame.display.update()
 
@@ -93,7 +98,7 @@ class AirhockeyGame:
         players = [(self.genome1, net1, self.left_paddle, True), (self.genome2, net2, self.right_paddle, False)]
         for (genome, net, paddle, left) in players:
             output = net.activate(
-                (paddle.y, paddle.x, self.ball.x, self.ball.y))
+                (paddle.x, paddle.y, paddle.x_vel, paddle.y_vel, self.ball.x, self.ball.y, self.ball.x_vel, self.ball.y_vel))
             # print(left, output)
             decision = output.index(max(output))
             # six outputs: don't move vert, up, down, don't move horiz, left, right
@@ -102,7 +107,7 @@ class AirhockeyGame:
             move_up = False
             move_left = False
             if decision == 0:  # Don't move
-                genome.fitness -= 0.01  # we want to discourage this
+                genome.fitness -= 10  # we want to discourage this
                 no_vertical = True
             elif decision == 1:  # Move up
                 move_up = True
@@ -110,7 +115,7 @@ class AirhockeyGame:
                 move_up = False
             
             if decision == 3:  # Don't move
-                genome.fitness -= 0.01  # we want to discourage this
+                genome.fitness -= 10  # we want to discourage this
                 no_lateral = True
             elif decision == 4:  # Move right
                 move_left = False
@@ -118,11 +123,14 @@ class AirhockeyGame:
                 move_left = True
             valid = self.game.move_paddle(left_paddle=left, up=move_up, move_left=move_left, no_lateral=no_lateral, no_vertical = no_vertical)
             if not valid:  # If the movement makes the paddle go off the screen punish the AI
-                genome.fitness -= 1
+                genome.fitness -= 10
 
     def calculate_fitness(self, game_info, duration):
-        self.genome1.fitness += game_info.left_hits + duration
-        self.genome2.fitness += game_info.right_hits + duration
+        self.genome1.fitness += game_info.left_hits
+        self.genome2.fitness += game_info.right_hits
+        if duration> 0:
+            self.genome1.fitness /= duration
+            self.genome2.fitness /= duration
 
 
 def eval_genomes(genomes, config):
@@ -146,7 +154,7 @@ def eval_genomes(genomes, config):
 
 
 def run_neat(config):
-    #p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-85')
+    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-19')
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
@@ -166,8 +174,8 @@ def test_best_network(config):
     width, height = 700, 500
     win = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Airhockey")
-    pong = AirhockeyGame(win, width, height)
-    pong.test_ai(winner_net)
+    airhockey = AirhockeyGame(win, width, height)
+    airhockey.test_ai(winner_net)
 
 
 if __name__ == '__main__':
@@ -181,4 +189,4 @@ if __name__ == '__main__':
                          config_path)
 
     run_neat(config)
-    test_best_network(config)
+    # test_best_network(config)

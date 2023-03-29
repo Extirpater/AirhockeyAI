@@ -28,8 +28,8 @@ class Ball:
         pygame.draw.circle(win, (255, 255, 255), (self.x, self.y), self.RADIUS)
 
     def move(self):
-        self.x += self.x_vel
-        self.y += self.y_vel
+        self.x += 2*self.x_vel
+        self.y += 2*self.y_vel
 
     def reset(self):
         self.x = self.original_x
