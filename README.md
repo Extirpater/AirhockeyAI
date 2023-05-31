@@ -14,13 +14,14 @@ https://www.youtube.com/watch?v=zZiMVUovUpY&feature=youtu.be
 
 /Training -> Saved model folders
 
-/Detection -> Preliminary CV detection algorihtim with hough transform, updated dual detection CV algirhtim is under /HOCKEY2
+/detection -> Preliminary CV detection algorihtim with hough transform, updated dual detection CV algirhtim is under /HOCKEY2
 
-/Gym_Game -> First version of OpenAI Gym game. Updated version is adapted found under /HOCKEY2
+/gym_Game -> First version of OpenAI Gym game. Updated version is adapted found under /HOCKEY2
 
-/Moter_driver -> Serial command translations from python code to Arduino Leonardo Motor Sheild
+/motor_driver -> Serial command translations from python code to Arduino Leonardo Motor Sheild
+To run the motors according to your computer's WASD keys, connect your machine to the arduino and compile and upload the arduino code located in the /arduino folder.
 
-/neat algo -> NEAT algorithim class declarations
+/neatalgo -> NEAT algorithim class declarations
 
 ## How To Run Code
 
