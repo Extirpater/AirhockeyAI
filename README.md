@@ -1,4 +1,4 @@
-## AirhockeyAI
+# AirhockeyAI
 
 AirHockey Branch contains main code
 
@@ -6,7 +6,7 @@ Edward Zhang Eric Feng
 Senior Research Project - Yilmaz Period 6
 https://www.youtube.com/watch?v=zZiMVUovUpY&feature=youtu.be
 
-# File Directory 
+## File Directory 
 
 /.ipynb_checkpoints -> Gym Envrioment Version 1 on Jupyter Notebook
 
@@ -21,5 +21,9 @@ https://www.youtube.com/watch?v=zZiMVUovUpY&feature=youtu.be
 /Moter_driver -> Serial command translations from python code to Arduino Leonardo Motor Sheild
 
 /neat algo -> NEAT algorithim class declarations
+
+## How To Run Code
+
+Main directory is under /HOCKEY2. Run main.py to see the simulation and play of the AI NEAT agent
 
 
