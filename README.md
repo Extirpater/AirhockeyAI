@@ -1,14 +1,12 @@
 ## AirhockeyAI
 
-#test
 AirHockey Branch contains main code
-
 
 Edward Zhang Eric Feng
 Senior Research Project - Yilmaz Period 6
 https://www.youtube.com/watch?v=zZiMVUovUpY&feature=youtu.be
 
-File Directory 
+# File Directory 
 
 /.ipynb_checkpoints -> Gym Envrioment Version 1 on Jupyter Notebook
 
